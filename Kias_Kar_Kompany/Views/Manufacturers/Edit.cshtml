@@ -1,0 +1,17 @@
+@model Kias_Kar_Kompany.Models.Vehicle
+
+<h1>Edit Vehicle</h1>
+
+<form asp-action="Edit">
+    <input type="hidden" asp-for="VehicleId" />
+
+    <input asp-for="VehicleName" class="form-control" />
+    <input asp-for="VehicleModel" class="form-control" />
+    <input asp-for="VehiclePrice" class="form-control" />
+    <input asp-for="VehicleType" class="form-control" />
+    <input asp-for="VehicleImageURL" class="form-control" />
+
+    <select asp-for="ManufacturerId" asp-items="ViewBag.ManufacturerId" class="form-control"></select>
+
+    <button type="submit">Save</button>
+</form>
