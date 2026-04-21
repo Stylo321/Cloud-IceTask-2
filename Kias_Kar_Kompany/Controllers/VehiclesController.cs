@@ -1,69 +1,104 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Kias_Kar_Kompany.Data;
 using Kias_Kar_Kompany.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.InteropServices;
 
-namespace Kias_Kar_Kompany.Controllers
+public class VehiclesController : Controller
 {
-    public class VehiclesController : Controller
+    private readonly Kias_Kar_KompanyContext _context;
+
+    public VehiclesController(Kias_Kar_KompanyContext context)
     {
-        private readonly Kias_Kar_KompanyContext _context;
+        _context = context;
+    }
 
-        public VehiclesController(Kias_Kar_KompanyContext context)
+    public async Task<IActionResult> Index()
+    {
+        return View(await _context.Vehicle.Include(v => v.Manufacturer).ToListAsync());
+    }
+
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id == null) return NotFound();
+
+        var vehicle = await _context.Vehicle
+            .Include(v => v.Manufacturer)
+            .FirstOrDefaultAsync(m => m.VehicleId == id);
+
+        if (vehicle == null) return NotFound();
+
+        return View(vehicle);
+    }
+
+    public IActionResult Create()
+    {
+        ViewData["ManufacturerId"] = new SelectList(_context.Manufacturer, "Id", "Manufacturer_Name");
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(Vehicle vehicle)
+    {
+        if (ModelState.IsValid)
         {
-            _context = context;
+            _context.Add(vehicle);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: VehiclesController
-        public async Task<IActionResult> Index()
+        ViewData["ManufacturerId"] = new SelectList(_context.Manufacturer, "Id", "Manufacturer_Name", vehicle.ManufacturerId);
+        return View(vehicle);
+    }
+
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null) return NotFound();
+
+        var vehicle = await _context.Vehicle.FindAsync(id);
+        if (vehicle == null) return NotFound();
+
+        ViewData["ManufacturerId"] = new SelectList(_context.Manufacturer, "Id", "Manufacturer_Name", vehicle.ManufacturerId);
+        return View(vehicle);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, Vehicle vehicle)
+    {
+        if (id != vehicle.VehicleId) return NotFound();
+
+        if (ModelState.IsValid)
         {
-            return View(await _context.Vehicle.ToListAsync());
+            _context.Update(vehicle);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: VehiclesController/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+        return View(vehicle);
+    }
 
-            var vehicle = await _context.Vehicle
-                .FirstOrDefaultAsync(m => m.VehicleId == id);
-            if (vehicle == null)
-            {
-                return NotFound();
-            }
-            return View(vehicle);
-        }
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id == null) return NotFound();
 
-        // GET: VehiclesController/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
+        var vehicle = await _context.Vehicle
+            .Include(v => v.Manufacturer)
+            .FirstOrDefaultAsync(m => m.VehicleId == id);
 
-        // POST: VehiclesController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VehicleId, VehicleName, VehicleModel, VehiclePrice, VehicleType, VehicleImageURL")] Vehicle vehicle)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(vehicle);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(vehicle);
-        }
+        if (vehicle == null) return NotFound();
 
-        // GET: VehiclesController/Edit/5
-        
-        private bool VehicleExists(int id)
-        {
-            return _context.Vehicle.Any(e => e.VehicleId == id );
-        }
+        return View(vehicle);
+    }
+
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var vehicle = await _context.Vehicle.FindAsync(id);
+        _context.Vehicle.Remove(vehicle);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
     }
 }
