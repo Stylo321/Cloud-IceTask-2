@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Kias_Kar_Kompany.Models
 {
@@ -12,6 +12,8 @@ namespace Kias_Kar_Kompany.Models
         public required string VehicleType { get; set; } = "Sedan";
         public string? VehicleImageURL { get; set; }
 
+        public int ManufacturerId { get; set; }
+       
         public Manufacturer? Manufacturer { get; set; }
     }
 }
